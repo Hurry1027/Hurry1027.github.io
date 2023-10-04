@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>regular.js配置说明</title>
+		<style>
+		.margin
+		{
+			margin-top:50px;
+			margin-bottom:100px;
+			margin-right:50px;
+			margin-left:50px;
+		}
+	</style>
+	</head>
+	<link href="https://cdn.bootcss.com/highlight.js/9.18.1/styles/monokai-sublime.min.css" rel="stylesheet">
+	<script src = "js/marked.min.js" type = "text/javascript" ></script>
+	<script src="https://cdn.bootcss.com/highlight.js/9.18.1/highlight.min.js"></script>
+<body>
+
+<div id = "mark" class="margin">
+# regular0.1.12 默认基础扩展配置说明
+**regular0.1.12.js在[Yoyo交流群（363457102）](https://qm.qq.com/cgi-bin/qm/qr?k=FHUar0yCaVvcsURxp5_QJcumNViII_-9&jump_from=webapi&authKey=+mUCUeYkCubQvSnPb7f8u3nUuWT1nzMu1x36gEsK9jw/2sFijWCo6hi/tODieBS/)群文件下载。**
+**请将 regular0.1.12.js 及其他yoyo机器人的扩展插件，放到BDS根目录./YoyoRobot/下。**
+
+**Q群口令在./YoyoRobot/regular/config.json 中配置，以下为配置教程。**
+
+**本手册兼容regular0.1.5 - 0.1.12 版本**
+
+正则表达式教程：[正则表达式在线测试 | 菜鸟工具](https://c.runoob.com/front-end/854/)
+
+JSON校验：[JSON 在线解析 | 菜鸟工具](https://c.runoob.com/front-end/53/)
+
+**正则分为两种类型**
+
+**一种是监听群消息："type": "group"**
+
+**另一种是监听控制台输出："type": "cmd"**
+
+## 一、监听控制台命令输出 ("type": "cmd")
+
+```json
+{ 
+    "type": "cmd", 
+    "se": "Player (.*) added to allowlist", 
+    "msg": "白名单 $1 添加完成" 
+}
+```
+
+se 为正则表达式，用来匹配控制台命令输出，msg 为机器人发送的群消息。
+
+当控制台输出 Player error block added to allowlist，则向群内发送 白名单 error block 添加完成。
+
+这条配置仅作为例子，在实际使用中是无效的，因为BDS的命令输出不会含有具体的玩家名字。
+
+## 二、监听群消息（"type": "group"）
+
+### （一） 执行后台命令
+
+#### 1、监听Q群口令，执行后台命令
+
+```json
+{
+    "type": "group", 
+    "se": "^清理掉落物$", 
+    "cmd": "kill @e[type=item]", 
+    "op": true 
+}
+```
+
+op 为是否仅允许机器人管理员执行
+
+#### 2、监听Q群口令，执行后台命令，匹配命令输出，返回群消息提示。
+
+```json
+{ 
+    "type": "group", 
+    "se": "^在线玩家$", 
+    "cmd": "list",
+    "result":"There are ([\\d/]+) players online:([\\s\\S]*)", 
+    "msg": "在线玩家:$1 $2", 
+    "op": false 
+}
+```
+
+群里输“在线玩家” —> 执行后台命令list —> 匹配命令执行结果(result) —> 向群内发送msg
+
+“msg”中的 \$1 \$2 为 "result" 对应位置的匹配内容。
+
+```json
+{ 
+    "type": "group", 
+    "se": "^/(.+)$", 
+    "cmd": "$1", 
+    "result": "^(.+)$",
+    "msg": "$1", 
+    "op": true, 
+}
+```
+
+这是群内执行/命令的配置。
+
+用se正则匹配群内/开头的消息(se)，执行后台命令(cmd)，获取命令输出(result)，向群内发送命令输出(msg)。
+
+### （二）执行自定义函数
+
+```json
+{
+    "type": "group",
+    "se": "^地图画上传\\s(\\w{1,20})\\.jpg.*\n?$",
+    "fun": "customMap",
+    "op": false
+}
+```
+
+需要在正则js文件中写代码，用来处理复杂的任务。
+
+`var pl = selectGameName(123342344)`
+
+返回QQ号绑定的玩家名称（XboxID）`null`为没有绑定。
+
+`var piText = msg.text.match(RegularOject)`
+
+获取Q群口令的参数(“se”的正则匹配)
+
+`piText[1]`为第一个参数，`piText[2]`为第二个参数。
+
+`msg.text` 为监听到的群消息。
+
+`strSe.op` 是否是op口令。
+
+`_sendGroupMsg(e.group_id, "<玩家>进入了服务器");`
+
+发送普通群消息。
+
+`_sendGroupMsg(e.group_id, [yoyo.segment.at(e.sender.user_id), yoyo.segment.text("\n你没有上传该地图画")]);` 
+
+发送@玩家的群消息。
+
+### （三）机器人聊天回复
+
+#### 口令完整匹配，直接回复
+
+```json
+{
+    "type": "group",
+    "se": "^@1145141919\\s*白名单$",
+    "msg": "在这里申请: http://xxxx.xxx",
+    "op": false
+}
+```
+
+这里设置了@机器人发消息才会生效，1145141919为机器人qq号。
+
+"se"：^与\$中间填完整匹配的内容。
+
+#### 识别关键词，进行随机回复
+
+```json
+{
+    "type": "group",
+    "se": "帮帮我",
+    "msg": ["不能", "什么问题, 先v我50", "为什么不问百度", "略略略"],
+    "op": false
+}
+```
+
+</div>
+
+<script>
+    let markdown = document.getElementById('mark');
+    markdown.innerHTML = marked(markdown.innerHTML);
+</script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>
