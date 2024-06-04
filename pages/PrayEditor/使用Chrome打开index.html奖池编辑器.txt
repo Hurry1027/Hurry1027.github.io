@@ -1,0 +1,5 @@
+奖池编辑器：使用Chrome打开index.html
+
+此种方式打开，编辑器不能直接更改本地json，需要手动复制json。
+建议运行上一目录的 HttpServer(Node).bat，
+并访问: http://localhost:7100
