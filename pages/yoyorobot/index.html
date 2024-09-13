@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<title>YoyoRobot正则配置生成器</title>
+		<script src="js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/sss.js" type="text/javascript" charset="utf-8"></script>
+		
+		<link rel="stylesheet" type="text/css" href="index.css" />
+		<style type="text/css">
+			@media screen and (max-width:375px) {
+				html {
+					font-size: 2px;
+				}
+			}
+
+			@media screen and (min-width:376px) and (max-width:800px) {
+				html {
+					font-size: 4px;
+				}
+			}
+
+			@media screen and (min-width:801px) {
+				html {
+					font-size: 6px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app" class="counter">
+			<div class="head">
+				正则配置生成器(v0.1.0)
+			</div>
+			<div class="subtitle">
+				config.json生成器 | 适配regular0.1.12.js 
+				<span style = "font-size:15px;color:Gray">Author: Yoyo、Wn1027<span>
+			</div>
+			<br>
+			<div>
+				<ul class = "navigationBar">
+					<li class = "navigation"><a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=FHUar0yCaVvcsURxp5_QJcumNViII_-9&jump_from=webapi&authKey=+mUCUeYkCubQvSnPb7f8u3nUuWT1nzMu1x36gEsK9jw/2sFijWCo6hi/tODieBS/">Yoyo交流群</a></li>
+					<li class = "navigation"><a target="_blank" href="https://docs.wyouw.cn">Yoyo机器人文档站</a></li>
+					<li class = "navigation"><a target="_blank" href="./regular.js配置说明.html">正则配置说明</a></li>
+					<li class = "navigation"><a target="_blank" href="https://c.runoob.com/front-end/854/">正则表达式测试</a></li>
+					<li class = "navigation"><a target="_blank" href="https://c.runoob.com/front-end/53/">JSON校验</a></li>
+				</ul>
+			</div>
+			<br>
+			<div style = "font-size:15px;color:Gray">
+				提示: regular0.1.12.js为机器人默认基础扩展，在Yoyo交流群群文件下载，放入./YoyoRobot/下，开服生成config.json
+			</div>
+			<div class="expa"></div>
+			<div class="body">
+				<div style = "width:100%;">
+				<!--基本配置-->
+				<div style = "width:49%;min-height:400px;float: left;display: flex;flex-direction: column;justify-content: space-evenly;align-items: center;">
+				<div>
+					<span class = "optionTitle">监听QQ群:</span>
+					<input type="text" placeholder="群号" v-model="group" />
+					<button @click="newGroup">新增</button>
+					<div v-for="(item,index) in config.group" :key="index">已监听QQ群（{{item}}） <button style="color: red;"
+							@click="delGroup(index)"> 删除 </button></div>
+				</div>
+				<div class="expa"></div>
+				<div>
+					<span class = "optionTitle">机器人管理员:</span>
+					<input type="text" placeholder="qq号" v-model="adminList" />
+					<button @click="newAdminList">新增</button>
+					<div v-for="(item,index) in config.adminList" :key="index">管理员（{{item}}）<button
+							style="color: red;" @click="delAdminList(index)"> 删除 </button></div>
+				</div>
+				<div class="expa"></div>
+				<div>
+					<span class = "optionTitle">群消息前缀名:</span>
+					<input type="text" placeholder="信息的前缀名" v-model="config.serverName" />
+				</div>
+				<div class="expa"></div>
+				
+				<div>
+					<input type="checkbox" v-model="config.functionSwitch.InAndOutOfTip" />玩家进服提示
+					<input type="checkbox" v-model="config.functionSwitch.ChatForward" />聊天转发（游戏内->群）
+					<br>
+					<input type="checkbox" v-model="config.functionSwitch.AddGroupAgreed" />加群自动同意
+					<input type="checkbox" v-model="config.functionSwitch.OutGroupBlacklist" />退群自动添加黑名单
+					<input type="checkbox" v-model="config.functionSwitch.isMoney" />自动开启玩家经济系统
+				</div>
+				<div class="expa"></div>
+				<div>
+					<span v-if = "stray.type == 'cmd'" class = "optionTitle">退群执行指令</span>
+					<span v-if = "stray.type == 'group'" class = "optionTitle">退群发送群消息</span>
+					<select v-model="stray.type">
+						<option v-for="(item,index) in stray.list" :key="index" :value="item">{{item}}</option>
+					</select>
+					<input type="text" placeholder="信息/命令" v-model="stray.text" />
+					<button @click="newstray">新增退群操作</button>
+					<br><br>
+					<table v-if="config.stray.length>=1" style = "width:100%;" border="" cellspacing="" cellpadding="">
+						<tr>
+							<th style = "width:12%;">类型</th>
+							<th style = "width:40%;">发送群信息</th>
+							<th style = "width:40%;">执行命令</th>
+							<th style = "width:8%;"></th>
+						</tr>
+						<tr v-for="(item,index) in config.stray" :key="index">
+							<td style = "text-align:center;"><span
+									:style="'color:'+(item.type=='cmd'?'#ff55ff':'#0054fd')">{{item.type=='cmd'?'执行命令':'群消息'}}</span>
+							</td>
+							<td>{{item.msg}}</td>
+							<td>{{item.cmd}}</td>
+							<td style = "text-align:center;"><button style="color: red;" @click="delstray(index)"> 删除 </button></td>
+						</tr>
+					</table>
+				</div>
+				</div>
+				<div style = "width:2%;min-height:400px;;float:left;"></div>
+				<!--实时生成-->
+				<div style = "width:49%;min-height:400px;;float:left;display:flex;flex-direction:column;align-items:center;">
+					<div style = "width:100%;"><span>实时生成的配置文件(你也可以填入你的config生成配置)</span>
+					<button type="button" @click="jsonTocnfig">用JSON生成配置</button></div>
+					<div style = "width:100%;"><span>请复制粘贴到./YoyoRobot/regular/config.json</span></div>
+					<div style = "width:100%;"><textarea  v-model="jsonText"></textarea></div>
+				</div>
+				</div>
+				
+				<br>
+				
+				<!--自定义监听配置-->
+				<div style = "width:100%;">
+					<fieldset>
+					<legend>
+						<span class = "optionTitle">自定义监听消息:</span>
+					</legend>
+					<button @click="newregular">新增正则规则</button>
+					<select v-model="regular.type">
+						<option v-for="(item,index) in regular.list" :key="index" :value="item">{{item}}</option>
+					</select>
+					
+					<br><br>
+					<div v-if="regular.type == '监听命令输出'">
+						命令输出匹配:<input type="text" placeholder="正则" v-model="regular.se" />
+						发送群信息:<input type="text" placeholder="信息" v-model="regular.msg" />
+					</div>
+					<div v-if="regular.type == '监听群消息 & 执行指令'">
+						群消息匹配:<input type="text" placeholder="正则表达式" v-model="regular.se" />
+						执行指令:<input type="text" placeholder="命令" v-model="regular.cmd" />
+						指令输出匹配:<input type="text" placeholder="正则(可以不填)" v-model="regular.fse" />
+						发送群信息:<input type="text" placeholder="信息" v-model="regular.msg" />
+						管理员口令:<input type="checkbox" v-model="regular.op" />
+					</div>
+					<div v-if="regular.type == '监听群消息 & 聊天回复'">
+						群消息匹配:<input type="text" placeholder="正则" v-model="regular.se" />
+						<input type="checkbox" v-model="regular.isRollAns" />随机回复&nbsp &nbsp
+						发送群消息:<input type="text" placeholder="回复信息" v-model="regular.msg">
+						<span v-if="regular.isRollAns"><button  @click="addRollAns">新增随机回复</button></span>
+						<input type="checkbox" v-model="regular.op" />管理员口令
+						<div style = "margin-left:10px;">
+						<table v-if="regular.isRollAns" border = "0">
+							<tr v-for="(ans, index) in regular.rollAns" :key="index">
+								<td>{{ ans }}</td>
+								<td><button style="color: red;" @click="delRollAns(index)"> 删除这条回复 </button></td>
+							</tr>
+						</table>
+						</div>  
+					</div>
+					<div v-if="regular.type == '监听群消息 & 自定义函数'">
+						群消息匹配:<input type="text" placeholder="正则" v-model="regular.se" />
+						发送群信息:<input type="text" placeholder="信息" v-model="regular.msg" />
+						函数（开发者使用）:<input type="text" placeholder="函数名" v-model="regular.fun" />
+						管理员口令:<input type="checkbox" v-model="regular.op" />
+					</div>
+					<br>
+					
+					<table v-if="config.regular.length>=1" border="1" cellspacing="" cellpadding="">
+						<tr>
+							<th width="8%">类型</th>
+							<th width="15%">正则匹配</th>
+							<th width="10%">执行命令</th>
+							<th width="20%">命令输出正则</th>
+							<th width="20%">发送群信息</th>
+							<th width="10%">自定义函数</th>
+							<th width="4%">权限</th>
+							<th width="9%"></th>
+						</tr>
+						<tr v-for="(item,index) in config.regular" :key="index" class="regular">
+							<td style = "text-align:center;">
+								<span :style="'color:'+(item.type=='cmd'?'#ff55ff':'#0054fd')">{{item.type=='cmd'?'监听命令输出':'监听群消息'}}</span>
+							</td>
+							<td><span style="color: green;">{{item.se}}</span></td>
+							<td><span v-if="item.cmd!=null" style="color: chocolate;">{{item.cmd}}</span></td>
+							<td><span v-if="item.result!=null" style="color: chocolate;">{{item.result}}</span></td>
+							<td><span v-if="item.msg!=null" style="color: chocolate;">{{item.msg}}</span></td>
+							<td><span v-if="item.fun!=null" style="color: chocolate;">{{item.fun}}</span></td>
+							<td style = "text-align:center;"><span v-if="item.op!=null"
+									:style="'color:'+(item.op?'#ff0000':'#00aa00')">{{item.op?'管理员':'所有人'}}</span></td>
+							<td style = "text-align:center;">
+								<button style="color: Indigo;" @click="loadregular(index)"> 加载 </button>
+								<button style="color: red;" @click="delregular(index)"> 删除 </button>
+							</td>
+						</tr>
+					</table>
+					</fieldset>
+				</div>
+				
+				<br>
+				
+			</div>
+		</div>
+		<script>
+			new Vue({
+				el: "#app",
+				data: {
+					group: '',
+					adminList: '',
+					stray: {
+						type: 'cmd',
+						text: '',
+						list: ['cmd', 'group']
+					},
+					regular: {
+						type: '监听群消息 & 执行指令',
+						list: ['监听命令输出', '监听群消息 & 执行指令', '监听群消息 & 聊天回复', '监听群消息 & 自定义函数'],
+						funList: ['bind', 'unbind', 'serverInfo', 'tellAll'],
+						se: '',
+						msg: '',
+						cmd: '',
+						fse: '',
+						isRollAns: false,
+						rollAns:[],
+						op: false,
+						fun: ''
+					},
+					config: config,
+					jsonText: JSON.stringify(config, null, 4)
+				},
+				created() {},
+				watch: {
+					config: {
+						handler(val, oldVal) {
+							this.jsonText = JSON.stringify(this.config, null, 4);
+							console.log('变动了');
+						},
+						deep: true
+					}
+				},
+				methods: {
+					/**
+					 * 新增群号
+					 */
+					newGroup() {
+						if (this.group == '') {
+							alert('请输入内容');
+							return false;
+						}
+						this.config.group.push(`${this.group}`);
+						this.group = '';
+					},
+					/**
+					 * 删除指定群号
+					 * @param {int} index索引
+					 */
+					delGroup(index) {
+						this.config.group.splice(index, 1);
+					},
+					/**
+					 * 新增管理号
+					 */
+					newAdminList() {
+						if (this.adminList == '') {
+							alert('请输入内容');
+							return false;
+						}
+						this.config.adminList.push(`${this.adminList}`);
+						this.adminList = '';
+					},
+					/**
+					 * 删除指定管理号
+					 * @param {int} index索引
+					 */
+					delAdminList(index) {
+						this.config.adminList.splice(index, 1);
+					},
+					/**
+					 * 新增stray指令
+					 */
+					newstray() {
+						if (this.stray.text == '') {
+							alert('请输入内容');
+							return false;
+						}
+						let data = {
+							type: 'group'
+						};
+						if (this.stray.type == 'cmd') {
+							data.type = 'cmd';
+							data.cmd = this.stray.text;
+						} else {
+							data.msg = this.stray.text;
+						}
+						this.config.stray.push(data);
+						this.stray.text = '';
+					},
+					/**
+					 * 删除指定stray指令
+					 * @param {int} index索引
+					 */
+					delstray(index) {
+						this.config.stray.splice(index, 1);
+					},
+					
+					/**
+					 * 新增随机回复
+					 */
+					addRollAns(){
+						if (this.regular.msg == '') {
+							alert('请输入群消息内容');
+							return false;
+						}
+						if (this.regular.se.trim() == '') {
+							alert('请输入正则表达式');
+							return false;
+						}
+						this.regular.rollAns.push(this.regular.msg);
+						this.regular.msg = '';
+					},
+					/**
+					 * 删除随机回复
+					 */
+					delRollAns(index){
+						this.regular.rollAns.splice(index, 1);
+					},
+					/**
+					 * 新增regular指令
+					 */
+					newregular() {
+						if (this.regular.text == '') {
+							alert('请输入内容');
+							return false;
+						}
+						if (this.regular.se.trim() == '') {
+							alert('请输入正则表达式');
+							return false;
+						}
+						let data = {};
+						if (this.regular.type == '监听命令输出') {
+							data = {
+								type: 'cmd',
+								se: this.regular.se,
+								msg: this.regular.msg
+							};
+						} else if (this.regular.type == '监听群消息 & 自定义函数') {
+							data = {
+								type: 'group',
+								se: this.regular.se,
+								msg: this.regular.msg,
+								fun: this.regular.fun,
+								op: this.regular.op
+							};
+						} else if (this.regular.type == '监听群消息 & 执行指令') {
+							data = {
+								type: 'group',
+								se: this.regular.se,
+								msg: this.regular.msg,
+								cmd: this.regular.cmd,
+								op: this.regular.op
+							};
+							if (this.regular.fse != '') data.result = this.regular.fse;
+						}else if (this.regular.type == '监听群消息 & 聊天回复') {
+							if (!this.regular.isRollAns){
+								data = {
+									type: 'group',
+									se: this.regular.se,
+									msg: this.regular.msg,
+									op: this.regular.op
+								};
+							}else{
+								data = {
+									type: 'group',
+									se: this.regular.se,
+									msg: this.regular.rollAns,
+									op: this.regular.op
+								};
+							}
+						}
+						this.config.regular.push(data);
+						//清除
+						this.regular.se = '';
+						this.regular.msg = '';
+						this.regular.op = false;
+						this.regular.fse = '';
+						this.regular.cmd = '';
+					},
+					/**
+					 * 删除指定regular指令
+					 * @param {int} index索引
+					 */
+					delregular(index) {
+						this.config.regular.splice(index, 1);
+					},
+					/**
+					 * 加载指定regular指令
+					 * @param {int} index索引
+					 */
+					loadregular(index){
+						let regular = this.config.regular[index];
+						this.regular.se = regular.se ?? '';
+						this.regular.op = regular.op ?? false;
+						this.regular.fse = regular.fse ?? '';
+						this.regular.cmd = regular.cmd ?? '';
+						this.regular.fun = regular.fun ?? '';
+						if (regular.msg != undefined){
+							if (typeof(regular.msg) == "string"){
+								this.regular.msg = regular.msg;
+							}else if(regular.msg.length > 0){
+								this.regular.msg = regular.msg[0];
+								this.regular.rollAns = regular.msg;
+								this.regular.isRollAns = true;
+							}else{
+								this.regular.msg = '';
+							}
+						}
+						
+					},
+					jsonTocnfig(){
+						try{
+							let obj = JSON.parse(this.jsonText);
+							this.config = obj;
+						}catch(e){
+							alert('JSON格式错误,无法帮你还原配置');
+							return;
+						}
+					}
+					//成功
+				}
+			});
+		</script>
+	</body>
+</html>

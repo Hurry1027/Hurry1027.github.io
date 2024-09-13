@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang=zh-cmn-Hans>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="save" content="history"><style type="text/css">	input{behavior:url(#default#savehistory)}; </style>
+		<title>祈愿编辑器</title>
+		<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+ integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+  crossorigin="anonymous"></script> -->
+		<script>var RunHttp = false;</script>
+		<script src="js/jquery-3.7.1.min.js"></script>
+		<script src="js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/Config.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/CardPool.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/SNBTdata.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/LuckPrayTest.js" type="text/javascript" charset="utf-8"></script>
+		<script> 
+			const LuckPrayVersion = [1,3,0]; 
+		</script>
+		<!-- <script type="module" charset="utf-8">
+			import Pray from './js/LuckPrayTest.js';
+			window.Pray = Pray;
+		</script> -->
+		<link rel="stylesheet" type="text/css" href="styles/style.css" />
+		<style type="text/css">
+			@media screen and (max-width:375px) {
+				html {
+					font-size: 2px;
+				}
+			}
+
+			@media screen and (min-width:376px) and (max-width:800px) {
+				html {
+					font-size: 4px;
+				}
+			}
+
+			@media screen and (min-width:801px) {
+				html {
+					font-size: 6px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app" class="counter">
+			<div class="head">
+				祈愿编辑器(v1.3.0)
+			</div>
+			<div class="subtitle">
+				适配 祈愿1.3.0.js 
+				<span style = "font-size:15px;color:Gray">Author: Wn1027  Q群:311860068<span>
+			</div>
+			<br>
+			<div>
+				<ul class = "navigationBar">
+					<li class = "navigation"><a href="javascript:void(0);" style = "color:blueviolet;" onclick = "functionTab('PrayConfig')">配置生成</a></li>
+					<li class = "navigation"><a href="javascript:void(0);" style = "color:blueviolet;" onclick = "functionTab('PrayImitate')">模拟祈愿</a></li>
+					<li class = "navigation"><a target="_blank" href="https://www.minebbs.com/resources/5195/">插件介绍</a></li>
+					<li class = "navigation"><a target="_blank" href="https://ca.projectxero.top/idlist/">MCBE ID表</a></li>
+					<li class = "navigation"><a target="_blank" href="https://c.runoob.com/front-end/53/">JSON校验</a></li>
+					<li class = "navigation"><a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=ODZQR2zXw2IPswPmuBxOoBWIVIUfrcGp&jump_from=webapi&authKey=bSlkbG9WnL7HDG3FUwgA5UPSFgJzXAELbz3HE0ZimCLTFadUwXzPGaYN86pzmBu4">插件反馈</a></li>
+					<li class = "navigation"><a target="_blank" href="PrayEditor.zip">本地下载</a></li>
+				</ul>
+			</div>
+			<br>
+			<div v-if = "RunHttp == true && document.location.protocol != 'file:' " style = "font-size:15px;color:deepskyblue">
+				已连接HTTP服务, 你可以点击按钮直接更改插件文件夹中的配置文件。
+			</div>
+			<div v-if = "RunHttp == false || document.location.protocol == 'file:' " style = "font-size:15px;color: darkgoldenrod;">
+				未连接HTTP服务, 你需要手动将json粘贴到你的插件文件夹。
+			</div>
+			
+			<div class="expa"></div>
+		
+			<!-- 配置生成 -->
+			<div class="body" style = "min-height:350px;" id = "PrayConfig">
+			
+				<!-- 插件配置 -->
+				<div style = "width:100%;min-height:350px;">
+					<!--基本配置-->
+					<div style = "width:49%;min-height:350px;float: left;display: flex;flex-direction: column;justify-content: space-evenly;align-items: center;">
+						<div>
+							<fieldset>
+							<legend>
+								<span class = "optionTitle">设置打开祈愿的物品</span>
+							</legend>
+							物品类型名&nbsp&nbsp
+							<input type="text" placeholder="物品类型名" v-model="Config.guiItem.type" />
+							<br/>
+							SNBT库索引(可为空)&nbsp&nbsp
+							<input type="text" placeholder="(可空)" v-model="Config.guiItem.snbt" />
+							</fieldset>
+						</div>
+
+						<div>
+							<span class = "optionTitle">祈愿音效:</span>
+							<input type="text" placeholder="请输入音效ID" v-model="Config.praySound" />
+						</div>
+
+						<div>
+							<span class = "optionTitle">全服播报奖品等级:</span>
+							<input type="text" placeholder="请输入等级数字" v-model="Config.broadcastLevel" />
+						</div>
+						
+						<div>
+							<fieldset>
+								<legend>
+									<span class = "optionTitle">奖品等级设置</span>
+								</legend>
+								<div>
+									<table style="margin:0 auto;" border="" cellspacing="" cellpadding="">
+										<tr>
+											<th>等级索引</th>
+											<th>等级名</th>
+											<th>概率</th>
+											<th>等级颜色</th>
+											<th>等级音效(无效)</th>
+											<th>概率权重</th>
+											<th><button @click="newLevel(Config.level.length)"> 新增 </button></th>
+										<tr>
+										<tr v-for="(listItem, index) in Config.level" :key="index">
+											<td>{{listItem.index}}</td>
+											<td><input type="text" placeholder="等级名" v-model="listItem.name" style="width:80px;"/></td>
+											<td>{{(100*listItem.probability/Object.values(Config.level).map(a=>a.probability).reduce((a,b)=>a+b)).toFixed(2)}}%</td>
+											<td><input type="text" placeholder="等级颜色" v-model="listItem.color" style="width:60px;"/></td>
+											<td><input type="text" placeholder="等级音效" v-model="listItem.sound" style="width:90px;"/></td>
+											<td><input type="number" placeholder="概率权重" min = "0" v-model.number="listItem.probability" style="width:60px;"/></td>
+											<td><button @click="newLevel(index)"> 插入 </button><button style="color: red;" @click="delLevel(index)"> 删除 </button></td>
+										<tr>
+									</table>
+								</div>
+							</fieldset>
+						</div>
+							
+						
+					</div>
+
+					<div style = "width:2%;min-height:350px;;float:left;"></div>
+					<!--实时生成-->
+					<div style = "width:49%;height:350px;;float:left;display:flex;flex-direction:column;align-items:center;">
+						<div style = "width:100%;"><span class = "optionTitle">插件配置: Config.json</span>
+						<button style="float: right;" @click="allToDefault">载入默认配置</button>
+						<button style="float: right;" @click="allAjaxReload('confirm')">重新载入</button>
+						<button style="color:deepskyblue;float: right;font-weight: bold;"  @click="saveToBDS()">【保存更改】</button>
+						<br>
+						<input type="file" style="display: none;"  accept=".json" id="Config.json.files" @change="readFiles('Config.json.files', 'Config.json')"/>
+						<button onclick="document.getElementById('Config.json.files').click()">选择文件</button>
+						<button type="button" @click="jsonToConfig">验证JSON</button>
+						<button @click="copyText('Config.json')">复制</button>
+						<button @click="saveAs('Config.json','Config.json')">下载</button>
+						<br>
+						<span class = 'ajaxRes' id = 'saveRes_Config.json'>( 完成后复制到./plugins/LuckyPray/Config.json )</span>
+						</div>
+						<div style = "width:100%;"><textarea id = "Config.json" style="height: 300px;" v-model="Config_Text"></textarea></div>
+					</div>
+				</div>
+
+				<br/><div class="expa"></div><br/>
+				
+				<!-- 奖池配置 -->
+				<div style = "width:100%;min-height:600px;">
+					<div >
+						<button v-for="(pool, poolkey, poolIndex) in CardPool" :id = "'poolTabButton'+poolIndex" class = "poolTabLinks" v-on:click="poolTab($event, `poolkey${poolIndex}`) ">{{poolkey}}</button>	
+					</div>
+					<br/>
+					<div style = "width:49%;min-height:600px;float: left;">
+						<div v-for="(pool, poolkey, poolIndex) in CardPool" :id="'poolkey'+poolIndex" class="poolTabContent" style = "width:100%;min-height:600px;float: left;flex-direction: column;justify-content: space-evenly;align-items: center;">	
+							<span>
+								<input title="索引与名称不同, 索引是唯一的。(例: 常驻卡池2)" type="text" placeholder="请输入新奖池索引名" v-model.trim="Temp.newPoolIndex"/>
+								<button @click = "newPool()">新增奖池</button>
+								<button style = "color: red;" @click = "delPool(poolkey)">删除奖池</button>
+							</span>
+							<br/>
+							<!-- 奖池基础设置 -->
+							<div style="width:100%;">
+								<fieldset>
+								<legend><span class = "optionTitle">奖池基础设置</span></legend>
+	
+								<table border=0 cellspacing="" cellpadding="">
+									<tr>
+										<td><span>奖池名称</span></td>
+										<td><input type="text" placeholder="请输入奖池名称" v-model="CardPool[poolkey].name" /></td>
+									</tr>
+									<tr>
+										<td><span>奖池图标：</span></td>
+										<td><input type="text" placeholder="请输入奖池图标" v-model="CardPool[poolkey].icon" /><a target="_blank" title="下载示例资源包查看图标库路径" href = 'https://github.com/Mojang/bedrock-samples'>示例资源包</a></td>
+									</tr>
+									<tr>
+										<td><span>奖池是否启用：</span></td>
+										<td><input type="checkbox" v-model="CardPool[poolkey].enabled" /></td>
+									</tr>
+									<tr>
+										<td><span>截止日期：</span></td>
+										<td><input type="text" placeholder="请输入截止日期" v-model.trim="CardPool[poolkey].diedLine" /></td>
+									</tr>
+									<tr>
+										<td><span>奖池描述：</span></td>
+										<td><input type="text" placeholder="请输入奖池描述" v-model="CardPool[poolkey].discription" style="width:310px;" /></td>
+									</tr>
+
+									<tr>
+										<td><span>每日最大祈愿次数:</span></td>
+										<td><input type="number" min = '0' v-model.number="CardPool[poolkey].maxPrayCountPerday" /></td>
+									</tr>
+									<tr>
+										<td><span>每日祈愿次数重置时间:</span></td>
+										<td>
+											<input type="number" style="width: 30px;" min="0" max= "23" v-model.number="CardPool[poolkey].timeOfResetPerday[0]" />时&nbsp
+											<input type="number" style="width: 30px;" min="0" max= "59" v-model.number="CardPool[poolkey].timeOfResetPerday[1]" />分&nbsp
+										</td>
+									</tr>
+
+								</table>
+								</fieldset>
+							</div>
+							<br>
+
+							<div style="width:100%;">
+								<fieldset>
+								<legend><span class = "optionTitle">连抽模式</span></legend>
+								
+		
+								<div>
+									输入模式名称
+									<input type="text" style="width: 70px;" placeholder="连抽名称" v-model="Temp.prayMode.name" />
+									&nbsp;&nbsp;
+									输入抽奖次数
+									<input type="number" style="width: 70px;" min="1" v-model="Temp.prayMode.count" />
+									<button @click="newPrayMode(poolkey)">新增</button>
+									<br>
+									<div >
+										<table style = "margin: 0 auto;text-align: center;" border="" cellspacing="" cellpadding="">
+											<tr>
+												<th style = "width: 100px;">模式名称</th>
+												<th style = "width: 100px;">抽奖次数</th>
+												<th>操作</th>
+											<tr>
+											<tr v-for="(value, key, index) in CardPool[poolkey].prayMode" :key="index">
+												<td>{{key}}</td>
+												<td>{{value}}</td>
+												<td><button style="color: red;" @click="delPrayMode(poolkey, key)"> 删除 </button></td>
+											<tr>
+										</table>
+									</div>
+									
+								</div>
+								</fieldset>
+							</div>
+							<br>
+
+							<!-- 祈愿消耗物品 -->
+							<div style="width:100%;">
+								<fieldset>
+								<legend><span class = "optionTitle">祈愿消耗物品</span></legend>
+								<span>抽奖图标：</span><input type="text" placeholder="请输入图标路径" v-model.trim="CardPool[poolkey].prayItem.icon" /><a target="_blank" title="下载示例资源包查看图标库路径" href = 'https://github.com/Mojang/bedrock-samples'>示例资源包</a></td><br>
+								<span>代币类型：</span>
+								<select v-model="CardPool[poolkey].prayItem.mode">
+									<option v-for="(value, key, index) in def.prayItemMode" :key="index" :value="key">{{value}}</option>
+								</select>
+								<div v-if="CardPool[poolkey].prayItem.mode == 'itemAux'">
+									<table border=0 cellspacing="" cellpadding="">
+										<tr>
+											<td><span>物品名称：</span></td>
+											<td><input type="text" placeholder="请输入物品名称" v-model.trim="CardPool[poolkey].prayItem.name" /></td>
+										</tr>
+										<tr>
+											<td><span>标准类型：</span></td>
+											<td><input type="text" placeholder="请输入标准类型名" v-model.trim="CardPool[poolkey].prayItem.type" /></td>
+										</tr>
+										<tr>
+											<td><span>物品数量：</span></td>
+											<td><input type="number" min = "0" v-model.number="CardPool[poolkey].prayItem.count" /></td>
+										</tr>
+										<tr>
+											<td><span>特殊值：</span></td>
+											<td><input type="number" min = "-1" v-model.number="CardPool[poolkey].prayItem.aux" /></td>
+										</tr>
+									</table>
+								</div>
+								<div v-if="CardPool[poolkey].prayItem.mode == 'itemSnbt'">
+									<table border=0 cellspacing="" cellpadding="">
+										<tr>
+											<td><span>物品名称：</span></td>
+											<td><input type="text" placeholder="请输入物品名称" v-model.trim="CardPool[poolkey].prayItem.name" /></td>
+										</tr>
+										<tr>
+											<td><span>SNBT：</span></td>
+											<td><input type="text" placeholder="请输入SNBT" v-model.trim="CardPool[poolkey].prayItem.snbt" /></td>
+										</tr>
+									</table>
+								</div>
+								<div v-if="CardPool[poolkey].prayItem.mode == 'money'">
+									<table border=0 cellspacing="" cellpadding="">
+										<tr>
+											<td><span>物品名称：</span></td>
+											<td><input type="text" placeholder="请输入物品名称" v-model.trim="CardPool[poolkey].prayItem.name" /></td>
+										</tr>
+										<tr>
+											<td><span>金额：</span></td>
+											<td><input type="number" min = "0" v-model.number="CardPool[poolkey].prayItem.count" /></td>
+										</tr>
+									</table>
+								</div>
+								<div v-if="CardPool[poolkey].prayItem.mode == 'scoreboard'">
+									<table border=0 cellspacing="" cellpadding="">
+										<tr>
+											<td><span>物品名称：</span></td>
+											<td><input type="text" placeholder="请输入物品名称" v-model.trim="CardPool[poolkey].prayItem.name" /></td>
+										</tr>
+										<tr>
+											<td><span>计分项：</span></td>
+											<td><input type="text" placeholder="请输入计分项" v-model.trim="CardPool[poolkey].prayItem.obName" /></td>
+										</tr>
+										<tr>
+											<td><span>分数：</span></td>
+											<td><input type="number" min = "0" v-model.number="CardPool[poolkey].prayItem.count" /></td>
+										</tr>
+									</table>
+								</div>
+								</fieldset>
+							</div>
+							<br>
+							<!-- 连抽保底规则 -->
+							<div style="width:100%;">
+								<fieldset>
+								<legend><span class = "optionTitle">保底规则</span></legend>
+								<div>
+									<table style="margin:0 auto;" border="" cellspacing="" cellpadding="">
+										<tr>
+											<th>名称</th>
+											<th>连抽数</th>
+											<th title = "概率提升阈值抽数。玩家连抽数达到此值（73），则该等级掉率逐抽提高，直至达到保底抽数（90），该等级掉率100%。">阈值抽数</th>
+											<th title = "定轨数，0表示不会歪，1表示可能歪一次（如原神角色池），2表示可能歪两次（如原神武器池）">最大定轨</th>
+											<th title = "触发保底后, 按概率随机掉落所选等级奖品">奖品等级</th>
+											<th title = "玩家可自行从定轨奖品池中选择定轨奖品, 可选择数量为定轨奖品数">自定义定轨</th>
+											<th title = "自定义定轨物品的数量, 仅自定义定轨启用时有效">定轨奖品数</th>
+											<th title = "满定轨奖励池，填写奖品的索引index。空表示随机掉落该等级奖励。">定轨奖品池</th>
+											<th><button @click="addRegular(poolkey, CardPool[poolkey].regulars.length)"> 新增 </button></th>
+										<tr>
+										<tr v-for="(value, index) in CardPool[poolkey].regulars">
+											<td style="width:30px;"><input type="text" placeholder="请输入名称" v-model.trim="CardPool[poolkey].regulars[index].name" style="width:50px;" /></td>
+											<td style="width:30px;"><input type="number" min = "1" v-model.number="CardPool[poolkey].regulars[index].combos"  @change="refRegulars($event, poolkey)" style="width:30px;"/></td>
+											<td style="width:30px;"><input type="number" min = "0" v-model.number="CardPool[poolkey].regulars[index].threshold"  @change="refRegulars($event, poolkey)" style="width:30px;"/></td>
+											<td style="width:30px;"><input type="number" min = "0" v-model.number="CardPool[poolkey].regulars[index].maxOrbitScore"  @change="refRegulars($event, poolkey)" style="width:30px;"/></td>		
+											<td  style="width:80px;">
+												<span v-for = "(listItem, levelIndex) in Config.level">
+													<input type="radio" :value="listItem.index" v-model="CardPool[poolkey].regulars[index].level" />
+													<span>{{listItem.index}}</span>
+												</span>
+											</td>
+											<td style="width:30px;"><input type="checkbox"  v-model="CardPool[poolkey].regulars[index].customAimRewards" @change="refRegulars($event, poolkey)" /></td>
+											<td style="width:30px;"><input type="number" min = "0" v-model.number="CardPool[poolkey].regulars[index].aimRewardsNum"  @change="refRegulars($event, poolkey)" style="width:30px;"/></td>		
+											<td>
+												<span v-if = "CardPool[poolkey].regulars[index].aimRewards.length == 0">
+													随机掉落<br>
+													<button style="color: rgb(0, 217, 255);" @click="addAimReward(poolkey, index, 0)"> 新增 </button>
+												</span>
+												<span v-for = "(reward, rewardListIndex) in CardPool[poolkey].regulars[index].aimRewards">
+													<input type="text" v-model="CardPool[poolkey].regulars[index].aimRewards[rewardListIndex]" style="width: 70px;"/>
+													<button style="color: rgb(0, 217, 255);" @click="addAimReward(poolkey, index, rewardListIndex)"> 插 </button><button style="color: red;" @click="delAimReward(poolkey, index, rewardListIndex)"> 删 </button>
+													<br>
+												</span>
+											</td>
+											
+											<td><button style="width: 30px; color: rgb(0, 217, 255);" @click="addRegular(poolkey, index)"> 插 </button><br><button style="color: red;" @click="delRegular(poolkey, index)"> 删 </button></td>
+										<tr>
+									</table>
+								</div>
+								</fieldset>
+							</div>
+							<br>
+							<!-- 奖品设置 -->
+							<div style="width:100%;">
+								<fieldset>
+								<legend><span class = "optionTitle">奖品设置</span></legend>
+								<div class="tab" style="width:100%;">
+									<button v-for="(levelReward, level, levelIndex) in CardPool[poolkey].rewards" :id = "'rewardTabButton'+poolkey+level" class="tablinks" v-on:click="openTab($event, `rewardlevel${poolkey}${level}`)">{{level}}星奖品</button>
+									<span style="float: right;">
+										<input type="text" placeholder="星级" v-model="Temp.level" style="width: 30px;"/>
+										<button @click = "newLevelReward(poolkey)">新增</button>
+									</span>
+								</div>
+								
+								<div v-for="(levelReward, level, levelIndex) in CardPool[poolkey].rewards">
+									<div :id="`rewardlevel${poolkey}${level}`" class="tabcontent">
+										<br/>
+										<div>
+											<button @click = "expandReward(poolkey, level)">展开所有</button>
+											<button  @click = "foldReward(poolkey, level)">折叠所有</button>
+											&nbsp;&nbsp;
+											<button  @click = "averageReward(poolkey, level)">等分概率</button>
+											<button style="float: right;color: red;" @click = "delLevelReward(poolkey, level)">删除{{level}}星奖品</button>
+										</div>
+										<div class="expa2"><button @click = "newReward($event, poolkey, level, -1)">新增奖品</button></div>
+										<div v-for="(reward, rewardIndex) in levelReward">
+											<div style="display: flex; justify-content: space-between;">
+												<div class="font3" v-on:click = "collapse($event, 'rewardIndex'+poolkey+level+rewardIndex)">
+													{{rewardIndex+1}}-({{(100*CardPool[poolkey].rewards[level][rewardIndex].probability/Object.values(CardPool[poolkey].rewards[level]).map(a=>a.probability).reduce((a,b)=>a+b)).toFixed(2)}}%) {{CardPool[poolkey].rewards[level][rewardIndex].index}}:
+												</div>
+												<button style="color: red;" @click = "delReward(poolkey, level, rewardIndex)">删除奖品</button>
+											</div>
+											<div :id = "'rewardIndex'+poolkey+level+rewardIndex" style="display: none;">
+												<table border=0 cellspacing="" cellpadding="">
+													<tr>
+														<td><span>概率权重:</span></td>
+														<td><input type="number" min = "0" v-model.number="CardPool[poolkey].rewards[level][rewardIndex].probability" style="width:60px;"/></td>
+													</tr>
+													<tr>
+														<td><span>索引:</span></td>
+														<td><input type="text" placeholder="请输入奖品索引" v-model="CardPool[poolkey].rewards[level][rewardIndex].index" /></td>
+													</tr>
+													<tr>
+														<td><span>奖品名称:</span></td>
+														<td><input type="text" placeholder="请输入奖品显示名称" v-model="CardPool[poolkey].rewards[level][rewardIndex].name" /></td>
+													</tr>
+													<tr>
+														<td><span>奖品描述：</span></td>
+														<td><input type="text" placeholder="请输入奖品描述" v-model="CardPool[poolkey].rewards[level][rewardIndex].discription" style="width:330px;"/></td>
+													</tr>
+												</table>
+												<span>自定义命令：<button @click="addRewardCmd(poolkey, level, rewardIndex, CardPool[poolkey].rewards[level][rewardIndex].cmds?.length ?? 0)"> 新增 </button></span>
+												<table style="margin:0 auto;" border="" cellspacing="" cellpadding="">
+													<!-- <tr>
+														<th style="width:400px;">命令</th>
+														<th></th>
+													</tr> -->
+													<tr v-for="(cmd, cmdIndex) in CardPool[poolkey].rewards[level][rewardIndex].cmds">
+														<td><input type="text" placeholder="请输入命令" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].cmds[cmdIndex]" style="width:400px;"/></td>
+														<td><button style="color: rgb(0, 217, 255);" @click="addRewardCmd(poolkey, level, rewardIndex, cmdIndex)"> 插入 </button><button style="color: red;" @click="delRewardCmd(poolkey, level, rewardIndex, cmdIndex)"> 删除 </button></td>
+													</tr>
+												</table>
+												<br>
+												<span>奖品封装：</span>
+												<table style="margin:0 auto;" border="" cellspacing="" cellpadding="">
+													<tr>
+														<th>奖励模式</th>
+														<th>物品名</th>
+														<th>属性</th>
+														<th><button @click="addRewardItem(poolkey, level, rewardIndex, CardPool[poolkey].rewards[level][rewardIndex].rewardItems.length)"> 新增 </button></th>
+													</tr>
+													<tr v-for="(rewardItem, rewardItemIndex) in CardPool[poolkey].rewards[level][rewardIndex].rewardItems">
+														<td><select v-model="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode"><option v-for="(item, index) in def.rewardMode" :key="item" :value="index">{{item}}</option></select></td>
+														<td><input type="text" placeholder="请输入名称" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].name" style="width:100px;"/></td>
+														<td v-if="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode == 'itemAux'">		
+															<table border=0 cellspacing="" cellpadding="">
+																<tr>
+																	<td><span>类型:</span></td>
+																	<td><input type="text" placeholder="标准类型名" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].type" /></td>
+																</tr>
+																<tr>
+																	<td><span>数量:</span></td>
+																	<td><input type="number" min = "1" v-model.number="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].count" style="width:40px;"/></td>
+																</tr>
+																<tr>
+																	<td><span>特殊值:</span></td>
+																	<td><input type="number" min = "-1" v-model.number="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].aux" style="width:40px;"/></td>
+																</tr>
+															</table>
+														</td>
+														<td v-if="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode == 'itemSnbt'">
+															SNBT
+															<input title = "请在游戏内手持物品使用/pray snbtdata 添加SNBT" type="text" placeholder="填写SNBT库中的索引" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].snbt" />
+														</td>
+														<td v-if="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode == 'money'">
+															金额
+															<input type="number" min = "1" v-model.number="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].count" style="width:40px;"/>
+														</td>
+														<td v-if="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode == 'scoreboard'">
+															计分项
+															<input type="text" placeholder="计分项名称" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].obName" />
+															<br/>分数
+															<input type="number" min = "1" v-model.number="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].count" style="width:40px;"/>
+														</td>
+														<td v-if="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].mode == 'lootTable'">
+															战利品
+															<input type="text" placeholder="战利品" v-model.trim="CardPool[poolkey].rewards[level][rewardIndex].rewardItems[rewardItemIndex].lootTable" />
+														</td>
+														<td><button style="color: rgb(0, 217, 255);" @click="addRewardItem(poolkey, level, rewardIndex, rewardItemIndex)"> 插入 </button><button style="color: red;" @click="delRewardItem(poolkey, level, rewardIndex, rewardItemIndex)"> 删除 </button></td>
+													</tr>
+												</table>
+											</div>
+											<div class="expa2" @click = "collapse($event, 'rewardIndex'+poolkey+level+rewardIndex)">
+												折叠/展开
+												<button @click = "newReward($event, poolkey, level, rewardIndex)">新增奖品</button>
+												<button @click = "newReward($event, poolkey, level, rewardIndex, true)">复制奖品</button>
+											</div>
+											<!-- <div class="expa2" @click = "newReward(poolkey, level, rewardIndex)">新增新奖品</div> -->
+										</div>
+									</div>
+								</div>
+	
+									
+								</fieldset>
+							</div>
+						</div>
+					</div>
+					
+
+					<div style = "width:2%;min-height:600px;;float:left;"></div>
+
+					<!--实时生成-->
+					<div style = "width:49%;min-height:900px;;float:left;display:flex;flex-direction:column;align-items:center;">
+						<div style = "width:100%;"><span class = "optionTitle">奖品设置: CardPool.json</span>
+						<input type="file" style="display: none;" accept=".json" id="CardPool.json.files" @change="readFiles('CardPool.json.files', 'CardPool.json')"/>		
+						<br>
+						<button onclick="document.getElementById('CardPool.json.files').click()">选择文件</button>
+						<button type="button" @click="cardPoolToConfig">验证JSON</button>
+						<button @click="copyText('CardPool.json')">复制</button>
+						<button @click="saveAs('CardPool.json','CardPool.json')">下载</button>
+						<br>
+						<span class = 'ajaxRes' id = 'saveRes_CardPool.json'>( 完成后复制到./plugins/LuckyPray/CardPool.json )</span>
+						</div>
+						<div style = "width:100%;"><textarea id = "CardPool.json" style="height: 700px;"  v-model="CardPool_Text"></textarea></div>
+						
+						<br>
+
+						<div style = "width:100%;"><span class = "optionTitle" title="在游戏内手持物品执行/pray snbtdat 添加特殊物品到SNBT库">SNBT库: SNBTdata.json</span>
+						<input type="file" style="display: none;" accept=".json" id="SNBTdata.json.files" @change="readFiles('SNBTdata.json.files', 'SNBTdata.json')"/>
+						<br>
+						<button onclick="document.getElementById('SNBTdata.json.files').click()">选择文件</button>
+						<button type="button" @click="snbtToConfig">验证JSON</button>
+						<button @click="copyText('SNBTdata.json')">复制</button>
+						<button @click="saveAs('SNBTdata.json','SNBTdata.json')">下载</button>
+						<br>
+						<span class = 'ajaxRes' id = 'saveRes_SNBTdata.json'>( 完成后复制到./plugins/LuckyPray/SNBTdata.json )</span>
+						<div style = "width:100%;"><textarea id = "SNBTdata.json" v-model="SNBTdata_Text" ></textarea></div>
+						</div>
+					</div>
+					<br>
+				</div>
+
+			</div>
+
+			<!-- 模拟祈愿 -->
+			<div class="body" style = "width:100%;min-height:600px;display: none;" id = "PrayImitate">
+				<div>
+					选择奖池
+					<select v-model = "Temp.test_poolkey">
+						<option v-for="(value, key, index) in CardPool" :key="key" :value="key">{{value.name}}</option>
+					</select>
+					&nbsp;&nbsp;
+					祈愿次数
+					<input type="number" min="0" max = "10000" v-model.number = "Temp.test_prayCount" />
+					&nbsp;&nbsp;
+					<button @click ="prayCheck()"> 配置检查 </button>
+					<button style="color: rgb(0, 174, 255);" @click ="prayTest(Temp.test_poolkey, Temp.test_prayCount)"> 开始祈愿 </button>
+					<button style="color: rgb(0, 174, 255);" @click ="prayTest(Temp.test_poolkey, 1000)"> 千次祈愿 </button>
+				</div>
+				<!-- {{Statistic}} -->
+				<div v-if = "CardPool[Temp.test_poolkey]?.regulars.find(regular=>regular.customAimRewards) != undefined">
+					{{ (PlayerTemp[pl.xuid].statistic[Temp.test_poolkey] ?? savePrayTest(Temp.test_poolkey)) && undefined}}
+					<!-- {{savePrayTest(Temp.test_poolkey)}} -->
+					<br>
+					<table style="margin:0 auto;" border="" cellspacing="" cellpadding="">
+						<tr>
+							<th>保底规则</th>
+							<th>选择定轨</th>
+						</tr>
+						<tr v-for = "(regular, index) in CardPool[Temp.test_poolkey]?.regulars">
+							<td  v-if = "regular.customAimRewards">{{ regular.name }}</td>
+							<td  v-if = "regular.customAimRewards">
+								<span v-for = "(rewardIndex, rewardOrderIndex) in regular.aimRewards">
+									<input type="checkbox" :value="rewardIndex" v-model="PlayerTemp[pl.xuid].statistic[Temp.test_poolkey]?.regulars[regular.name].aimRewards"/>
+									{{ rewardIndex }}
+								</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+				
+				
+				<br>
+				<div style = "width:92%;min-height:600px;">
+					<div style = "width:49%;min-height:600px;float: left;">
+						<div v-for = "(pool, poolkey, index) in Statistic['玩家统计']">
+							<fieldset>
+								<legend><span class="optionTitle">{{poolkey}}</legend>
+								<span style="color: rgb(255, 106, 0);font-weight: 700;">{{ CardPool[poolkey].name }}</span>
+								&nbsp;&nbsp;
+								<span style="color: rgb(44, 156, 0);font-weight: 700;">总抽数: {{ Statistic["玩家统计"][poolkey]['combos'] }}</span>
+								<br><br>
+								<span style="color: rgb(149, 149, 149);">{{ CardPool[poolkey].discription }}</span>
+								<br><br>
+								<table style="text-align:center;" border=1px>
+									<tr>
+										<th><span style="color: rgb(0, 174, 255);">保底规则</span></th>
+										<th><span style="color: rgb(0, 174, 255);">计数</span></th>
+										<th><span style="color: rgb(0, 174, 255);">命中UP</span></th>
+										<th><span style="color: rgb(0, 174, 255);">小保底歪</span></th>
+										<th><span style="color: rgb(0, 174, 255);">满定轨数</span></th>
+										<th><span style="color: rgb(0, 174, 255);">当前已垫</span></th>
+										<th><span style="color: rgb(0, 174, 255);">当前定轨</span></th>
+										<!-- <th v-for = "(regValue, regName ,regIndex) in Statistic[poolkey]['保底']"><span style="color: rgb(0, 174, 255);">{{regName}}</span></th> -->
+									</tr>
+	
+									<tr v-for = "(regular, regularName, index) in Statistic['玩家统计'][poolkey]['regulars']">
+										<td style="min-width: 70px;">{{ regularName }}</td>
+										<td style="min-width: 70px;">{{ regular['count'] }}&nbsp;({{ (100*regular['count']/Statistic["玩家统计"][poolkey]['combos']).toFixed(1) }}%)</td>
+										<td style="min-width: 70px;">{{ regular['upCount'] }}&nbsp;({{ (100*regular['upCount']/Statistic["玩家统计"][poolkey]['combos']).toFixed(1) }}%)</td>
+										<td style="min-width: 70px;">{{ regular['orbitCount'] }}&nbsp;({{ (100*regular['orbitCount']/(regular['count']-regular['allOrbitCount'])).toFixed(1) }}%)</td>
+										<td style="min-width: 70px;">{{ regular['allOrbitCount'] }}</td>
+										<td style="min-width: 70px;">{{ regular['combos'] }}</td>
+										<td style="min-width: 70px;">{{ regular['orbitScore'] }}</td>
+										<!-- <td style="min-width: 100px;"  v-for = "(regValue, regName ,regIndex) in Statistic[poolkey]['保底']">
+											{{regValue}} ({{ (100*regValue/(Math.floor(Statistic[poolkey]['总抽数']/CardPool[poolkey].regulars.find(a=>a.name == regName).combos))).toFixed(2) }}%)
+										</td> -->
+									</tr>
+								</table>
+								<br>
+								<div>
+									<input type="text" placeholder="输入奖品索引" v-model = "Temp.test_rewardIndex" />
+									<button @click ="addRewardIndex(poolkey)"> 添加奖品统计 </button>
+									<button style="color: rgb(42, 126, 165);" @click ="addAllRewardIndex(poolkey)"> 添加全部 </button>
+									<button style="color: red;" @click ="prayClean(poolkey)"> 统计重置 </button>
+									<br>
+									<div style="width: 100%">
+										<span v-for = "(value, index) in Temp.test_rewardList[poolkey]">
+											<button style="color: brown;" @click = "delRewardIndex(poolkey, index)">
+												{{value}}:
+												<span v-if = "Statistic['奖品统计'][poolkey][value] != undefined">{{Statistic['奖品统计'][poolkey][value]}} ({{(100*Statistic['奖品统计'][poolkey][value]/Statistic["玩家统计"][poolkey]['combos']).toFixed(1)}}%)</span>
+											</button>
+											&nbsp;
+										</span>
+									</div>
+								</div>
+							</fieldset>
+						</div>
+					</div>
+					<div style = "width:2%;min-height:600px;float: left;"></div>
+					<div style = "width:49%;min-height:600px;float: left;">
+						<div style="padding: 10px; width: 100%; height: 10px;"><button style="float: right; color: rgb(29, 110, 176);" onclick="document.getElementById('prayConsole').innerHTML = '';">清空</button></div>
+						<div id = "prayConsole" style="padding: 10px; overflow-y:auto; width: 100%; height:600px; background-color: blanchedalmond; "></div>
+					</div>
+				</div>
+				
+				<!--
+					<input type="text" placeholder="请输入奖池名称"/>
+					v-model="CardPool[poolkey].prayItem.mode"
+					v-model="CardPool[poolkey].name"  
+					@click="addAimReward(poolkey, CardPool[poolkey].aimReward.length)"
+				-->
+			</div>
+		
+		
+		</div>
+		<script>
+			/* jshint esversion: 11 */
+			/*jshint -W069 */
+			
+			var app = new Vue({
+				el: "#app",
+				data: {
+					Config : Object.assign({}, Config_default),
+					CardPool: Object.assign({}, CardPool_default),
+					SNBTdata: Object.assign({}, SNBTdata_default),
+					PlayerTemp: Object.assign({}, PlayerTemp), //Vue PlayerTemp 与 LuckyPray的PlayerTemp已经地址绑定了。
+					Config_Text:  JSON.stringify(Config_default, null, 4),
+					CardPool_Text: JSON.stringify(CardPool_default, null, 4),
+					SNBTdata_Text: JSON.stringify(SNBTdata_default, null, 4),
+					Statistic: {},
+					def: {
+						prayItemMode: {itemAux: '物品特殊值', itemSnbt: '物品SNBT', money: 'LLMoney', scoreboard: '计分板'},
+						rewardMode: {itemAux: '物品特殊值', itemSnbt: '物品SNBT', money: 'LLMoney', scoreboard: '计分板', lootTable: '战利品'}
+					},
+					Temp: {
+						prayMode: {name: "", count: 1},
+						level: '',
+						newPoolIndex: '',
+						test_poolkey: '',
+						test_prayCount: 1,
+						test_rewardIndex: '',
+						test_rewardList: {}
+					}
+				},
+				created() {},
+				watch: {
+					Config: {
+						handler(val, oldVal) {
+							this.Config_Text = JSON.stringify(this.Config, null, 4);
+							localStorage.setItem('Config_Text', this.Config_Text);
+							console.log('Config变动了');
+						},
+						deep: true
+					},
+					CardPool: {
+						handler(val, oldVal) {
+							this.CardPool_Text = JSON.stringify(this.CardPool, null, 4);
+							localStorage.setItem('CardPool_Text', this.CardPool_Text);
+							console.log('CardPool变动了');							
+						},
+						deep: true
+					},
+					SNBTdata: {
+						handler(val, oldVal) {
+							this.SNBTdata_Text = JSON.stringify(this.SNBTdata, null, 4);
+							localStorage.setItem('SNBTdata_Text', this.SNBTdata_Text);
+							console.log('SNBTdata变动了');
+						},
+						deep: true
+					}
+				},
+				
+				mounted(){
+					// 读取配置信息
+					if (localStorage.getItem('Config_Text') != null && localStorage.getItem('CardPool_Text') != null && localStorage.getItem('SNBTdata_Text') != null){
+						this.Config_Text = localStorage.getItem('Config_Text'); // 读取本地存储
+						this.CardPool_Text = localStorage.getItem('CardPool_Text');
+						this.SNBTdata_Text = localStorage.getItem('SNBTdata_Text');
+						this.jsonToConfig();
+						this.cardPoolToConfig();
+						this.snbtToConfig();
+						['Config', 'CardPool', 'SNBTdata'].forEach(id=>{
+							let dom = document.getElementById(`saveRes_${id}.json`)
+							dom.innerHTML = `<span style = "color:grey;">已载入上次编辑的配置 (在文本框手动修改json后要点击"验证json")</span>`
+						})
+						this.initTab();
+					}else{
+						this.allAjaxReload(); // 从Http服务器请求本地文件
+					}
+				},
+				methods: {
+					//设置抽奖模式
+					newPrayMode(poolkey) {
+						if (this.Temp.prayMode.name == '') {
+							return false;
+						}
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.prayMode[this.Temp.prayMode.name] = this.Temp.prayMode.count;
+						this.CardPool[poolkey] = tem;
+						this.Temp.prayMode.name = '';
+						this.Temp.prayMode.count = 1;
+					},
+					delPrayMode(poolkey, key) {
+						//delete this.Config.prayMode[key];
+						this.$delete( this.CardPool[poolkey].prayMode, key);
+					},
+
+					//设置全局奖品等级
+					newLevel(index){
+						let tem = [...this.Config.level];
+						tem.splice(index,0,{
+							"index": String(index),
+							"name": `§e${'✿'.repeat(index+1)}`,
+							"color": "§c",
+							"sound": "chime.amethyst_block",
+							"probability": 0
+						});
+						for (let i = 0; i < tem.length; i++){
+							tem[i].index = String(i+1)
+						}
+						this.Config.level = tem;
+					},
+					delLevel(key) {
+						//delete this.Config.prayMode[key];
+						let tem = [...this.Config.level];
+						tem.splice(key, 1)
+						for (let i = 0; i < tem.length; i++){
+							tem[i].index = String(i+1)
+						}
+						this.Config.level = tem;
+					},
+
+					addAimReward(poolkey, index, rewardListIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.regulars[index].aimRewards.splice(rewardListIndex, 0, "");
+						this.CardPool[poolkey] = tem;
+					},
+					delAimReward(poolkey, index, rewardListIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.regulars[index].aimRewards.splice(rewardListIndex, 1);
+						this.CardPool[poolkey] = tem;
+					},
+
+					refRegulars(event, poolkey){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						for (let i = 0; i<tem.regulars.length; i++){
+							if (tem.regulars[i].reward == ''){
+								tem.regulars[i].reward = null;
+							}
+						}
+						tem.regulars.sort((a,b)=>b.combos - a.combos);
+						this.CardPool[poolkey] = tem;
+					},
+					addRegular(poolkey, index){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.regulars.splice(index, 0, {
+							"name": "新规则",
+							"combos": 0,
+							"level": [],
+							"reward": null
+						});
+						tem.regulars.sort((a,b)=>b.combos - a.combos);
+						this.CardPool[poolkey] = tem;
+					},
+					delRegular(poolkey, index){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.regulars.splice(index, 1);
+						this.CardPool[poolkey] = tem;
+					},
+
+					addRewardCmd(poolkey, level, rewardIndex, cmdIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						if (tem.rewards[level][rewardIndex].cmds == undefined){
+							tem.rewards[level][rewardIndex].cmds = [];
+						}
+						tem.rewards[level][rewardIndex].cmds.splice(cmdIndex, 0, "");
+						this.CardPool[poolkey] = tem;
+					},
+					delRewardCmd(poolkey, level, rewardIndex, cmdIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.rewards[level][rewardIndex].cmds.splice(cmdIndex, 1);
+						this.CardPool[poolkey] = tem;
+					},
+					addRewardItem(poolkey, level, rewardIndex, rewardItemIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.rewards[level][rewardIndex].rewardItems.splice(rewardItemIndex, 0, {
+							"mode": "itemAux",
+                            "name": "新物品"
+						})
+						this.CardPool[poolkey] = tem;
+					},
+					delRewardItem(poolkey, level, rewardIndex, rewardItemIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						tem.rewards[level][rewardIndex].rewardItems.splice(rewardItemIndex, 1);
+						this.CardPool[poolkey] = tem;
+					},
+
+					newReward(evt, poolkey, level, rewardIndex, copy){
+						evt.stopPropagation();  
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						if (copy == true){
+							tem.rewards[level].splice(rewardIndex+1, 0, JSON.parse(JSON.stringify(tem.rewards[level][rewardIndex])));
+						}else{
+							tem.rewards[level].splice(rewardIndex+1, 0, {
+								"index": "新奖品",
+								"name": "新奖品",
+								"discription": "新奖品 * 1",
+								"probability": 0,
+								"cmds": [],
+								"rewardItems": [{
+									"mode": "itemAux",
+									"name": "新物品"
+								}]
+							})
+						}
+						
+						this.CardPool[poolkey] = tem;
+
+						setTimeout(()=>{
+							let newTarget = document.getElementById('rewardIndex'+poolkey+level+(rewardIndex+1));
+							//console.log(`奖品数量 ${tem.rewards[level].length}`)
+							for (let i=tem.rewards[level].length-1; i>=0; i--){
+								let div = document.getElementById('rewardIndex'+poolkey+level+i);
+								if (div == null){continue;}
+								//console.log(`${'rewardIndex'+poolkey+level+i}: ${div.style.display }`)
+								if (i > rewardIndex && rewardIndex != -1){
+									let lastDiv = document.getElementById('rewardIndex'+poolkey+level+(i-1));
+									//console.log(`${'rewardIndex'+poolkey+level+i}: ${div.style.display} -> ${'rewardIndex'+poolkey+level+(i-1)}: ${lastDiv.style.display}`)
+									div.style.display =  lastDiv.style.display;
+								}
+							}
+							newTarget.style.display = 'block';
+						},20)
+					},
+
+					delReward(poolkey, level, rewardIndex){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						for (let i=0;i<tem.rewards[level].length; i++){
+							let div = document.getElementById('rewardIndex'+poolkey+level+i);
+							if (div == null){continue;}
+							if (i >= rewardIndex && i < tem.rewards[level].length-1){
+								let nextDiv = document.getElementById('rewardIndex'+poolkey+level+(i+1));
+								div.style.display =  nextDiv.style.display;
+							}
+							//console.log(`${'rewardIndex'+poolkey+level+i}: ${div.style.display }`)
+						}
+						tem.rewards[level].splice(rewardIndex, 1);
+						this.CardPool[poolkey] = tem;
+					},
+
+					newPool(){
+						let tem = Object.assign({}, this.CardPool);
+						if (this.Temp.newPoolIndex == ''){
+							alert(`请输入奖池索引(例: 常驻卡池2)`);
+							return;
+						}
+						tem[this.Temp.newPoolIndex] = {
+							"name": this.Temp.newPoolIndex,
+							"icon": "textures/items/nether_star",
+							"enabled": true,
+							"diedLine": "2099-12-26-0-0-0",
+							"discription": "",
+							"maxPrayCountPerday": 30,
+							"timeOfResetPerday": [
+								4,
+								0
+							],
+							"prayMode": {
+								"§l单抽": 1,
+								"§l十连": 10
+							},
+							"prayItem": {
+								"icon": "textures/items/nether_star",
+								"name": "钻石",
+								"mode": "itemAux",
+								"type": "minecraft:diamond",
+								"count": 1,
+								"aux": 0
+							},
+							"regulars": [
+								{
+									"name": "保底",   
+									"combos": 90,     
+									"level": "5",     
+									"threshold": 73,  
+									"maxOrbitScore": 1, 
+									"customAimRewards": false,
+                					"aimRewardsNum": 1, 
+									"aimRewards": [] 
+								},
+								{
+									"name": "十连",
+									"combos": 10,
+									"level": "4",
+									"threshold": 10,
+									"maxOrbitScore": 1,
+									"customAimRewards": false,
+                					"aimRewardsNum": 1,
+									"aimRewards": []
+								}
+							],
+							"rewards": {
+								
+							}
+						}
+						for (let i = 0; i < this.Config.level.length; i++){
+							tem[this.Temp.newPoolIndex].rewards[this.Config.level[i].index] = [];
+						}
+						this.CardPool = tem;
+						this.Temp.newPoolIndex = '';
+					},
+					delPool(poolkey){
+						if (Object.keys(this.CardPool).length == 1){return;}
+						if(confirm(`确定删除奖池 ${poolkey} 及其所有奖品? `)){
+							let tem = Object.assign({}, this.CardPool);
+							delete tem[poolkey];
+							this.CardPool = tem;
+						}else{
+							return;
+						}
+					},
+					
+					
+
+					expandReward(poolkey, level){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						for (let i=0; i<tem.rewards[level].length; i++){
+							let div = document.getElementById('rewardIndex'+poolkey+level+i);
+							if (div == null){continue;}
+							div.style.display = "block"
+						}
+					},
+
+					foldReward(poolkey, level){
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						for (let i=0; i<tem.rewards[level].length; i++){
+							let div = document.getElementById('rewardIndex'+poolkey+level+i);
+							if (div == null){continue;}
+							div.style.display = "none";
+							
+						}
+					},
+					averageReward(poolkey, level){
+						if (confirm('确定将该等级所有奖品概率等分?\n(抽中每个奖品的概率相同)')){
+							let tem = Object.assign({}, this.CardPool[poolkey]);
+							for (let i=0; i<tem.rewards[level].length; i++){
+								tem.rewards[level][i].probability = Math.floor(100/tem.rewards[level].length);
+							}
+							this.CardPool[poolkey] = tem;
+						}else{
+							return;
+						}
+						
+					},
+
+					newLevelReward(poolkey){
+						if (!(/(^[1-9]\d*$)/.test(this.Temp.level))){
+							alert('奖品等级请输入正整数');return;
+						}
+						
+						let res = false;
+						for (let l of this.Config.level){
+							if (l.index == this.Temp.level){
+								res = true;
+							}
+						}
+						if (!res){alert(`${this.Temp.level}星级未在Config.json中定义`);return;}
+						let tem = Object.assign({}, this.CardPool[poolkey]);
+						if (tem.rewards[this.Temp.level] !=undefined){
+							alert(`${this.Temp.level}星级已存在`);return;
+						}
+						tem.rewards[this.Temp.level] = []
+						this.Temp.level = '';
+						this.CardPool[poolkey] = tem;
+					},
+
+					delLevelReward(poolkey, level){
+						if(confirm(`确定删除 ${level} 等级及其所有奖品? `)){
+							let tem = Object.assign({}, this.CardPool[poolkey]);
+							delete tem.rewards[level]
+							this.CardPool[poolkey] = tem;
+						}else{
+							return;
+						}
+					},
+
+					poolTab(evt, tabName, currentTarget){
+						if (document.getElementById(tabName) == null){return;}
+						var i, poolTabContent, poolTabLinks;
+
+						// 获取所有选项卡内容元素，隐藏它们
+						poolTabContent = document.getElementsByClassName("poolTabContent");
+						for (i = 0; i < poolTabContent.length; i++) {
+							poolTabContent[i].style.display = "none";
+						}
+
+						// 获取所有选项卡链接元素，移除它们的 active 类
+						poolTabLinks = document.getElementsByClassName("poolTabLinks");
+						for (i = 0; i < poolTabLinks.length; i++) {
+							poolTabLinks[i].className = poolTabLinks[i].className.replaceAll(" poolTabLinks_active", "");
+						}
+
+						// 显示当前选项卡的内容，并将链接标记为 active
+						document.getElementById(tabName).style.display = "flex";
+						if (currentTarget!=null){
+							currentTarget.className += " poolTabLinks_active"
+							return;
+						}
+						evt.currentTarget.className += " poolTabLinks_active";
+					},
+					openTab(evt, tabName, currentTarget) {
+						if (document.getElementById(tabName) == null){return;}
+						var i, tabcontent, tablinks;
+
+						// 获取所有选项卡内容元素，隐藏它们
+						tabcontent = document.getElementsByClassName("tabcontent");
+						for (i = 0; i < tabcontent.length; i++) {
+							tabcontent[i].style.display = "none";
+						}
+
+						// 获取所有选项卡链接元素，移除它们的 active 类
+						tablinks = document.getElementsByClassName("tablinks");
+						for (i = 0; i < tablinks.length; i++) {
+							tablinks[i].className = tablinks[i].className.replaceAll(" active", "");
+						}
+
+						// 显示当前选项卡的内容，并将链接标记为 active
+						document.getElementById(tabName).style.display = "block";
+						if (currentTarget!=null){
+							currentTarget.className += " active"
+							return;
+						}
+						evt.currentTarget.className += " active";
+					},
+
+					collapse(evt, id){
+						let div = document.getElementById(id);
+						if (div == undefined){return;}
+						if (div.style.display == "none"){
+							div.style.display = "block"
+						}else{
+							div.style.display = "none";
+						}
+					},
+
+					copyText(id){
+						let text = document.getElementById(id);
+						text.select();
+						document.execCommand("copy");
+
+						try{
+							let tem = JSON.parse(text.value);
+						}catch(e){
+							alert('JSON格式错误, 请校验JSON\n'+e);
+						}
+					},
+					
+					savePrayTest(poolkey){
+						Config = this.Config;
+						CardPool = this.CardPool;
+						SNBTdata = this.SNBTdata;
+						//PlayerTemp = this.PlayerTemp; 
+						Pray.init(poolkey);
+					},
+					prayTest(poolkey, count){
+						if (this.CardPool[poolkey] == undefined){return;}
+						try{JSON.parse(this.Config_Text);}catch(e){return alert('JSON格式错误(Config.json)\n'+e);}
+						try{JSON.parse(this.CardPool_Text);}catch(e){return alert('JSON格式错误(CardPool.json)\n'+e);}
+						try{JSON.parse(this.SNBTdata_Text);}catch(e){return alert('JSON格式错误(SNBTdata.json)\n'+e);}
+						Config = this.Config;
+						CardPool = this.CardPool;
+						SNBTdata = this.SNBTdata;
+						PlayerTemp = this.PlayerTemp;
+						test_rewardList = this.Temp.test_rewardList;
+						this.Statistic =  Object.assign({}, Pray.drawTest(poolkey, count));
+						if (this.Temp.test_rewardList[poolkey] == undefined){
+							this.addAllRewardIndex(poolkey);
+						}
+					},
+					prayCheck(){
+						try{JSON.parse(this.Config_Text);}catch(e){return alert('JSON格式错误(Config.json)\n'+e);}
+						try{JSON.parse(this.CardPool_Text);}catch(e){return alert('JSON格式错误(CardPool.json)\n'+e);}
+						try{JSON.parse(this.SNBTdata_Text);}catch(e){return alert('JSON格式错误(SNBTdata.json)\n'+e);}
+						Config = this.Config;
+						CardPool = this.CardPool;
+						SNBTdata = this.SNBTdata;
+						Pray.checkConfig();
+					},
+					prayClean(poolkey){
+						if (CardPool[poolkey] == undefined){return;}
+						this.Temp.test_rewardList[poolkey] = null;
+						//this.Statistic = Object.assign({}, Pray.statisticClean(poolkey));
+						this.Statistic = JSON.parse(JSON.stringify(Pray.statisticClean(poolkey))); //解耦vue Statistic 和 LucyPrayTest的Statistic以及其下的PlayerTemp
+					},
+
+					addAllRewardIndex(poolkey){
+						if (CardPool[poolkey] == undefined){return;}
+						let tmp = Object.assign({}, this.Temp);
+						let list = [];
+						for (let level in CardPool[poolkey].rewards){
+							list = list.concat(CardPool[poolkey].rewards[level].map(reward=>reward.index));
+						}
+						tmp.test_rewardList[poolkey] = list;
+						this.Temp = tmp;
+					},
+					addRewardIndex(poolkey){
+						if (this.Temp.test_rewardIndex == ''){return;}
+						let tmp = Object.assign({}, this.Temp);
+						tmp.test_rewardList[poolkey].push(tmp.test_rewardIndex);
+						tmp.test_rewardIndex = '';
+						this.Temp = tmp;
+					},
+					delRewardIndex(poolkey, index){
+						let tmp = Object.assign({}, this.Temp);
+						tmp.test_rewardList[poolkey].splice(index, 1);
+						this.Temp = tmp;
+					},
+					
+					readFiles(id, outputId) {
+						var selectedFile = document.getElementById(id).files[0];//获取读取的File对象
+						if (selectedFile == null){return;}
+						var name = selectedFile.name;//读取选中文件的文件名
+						var size = selectedFile.size;//读取选中文件的大小
+						if (!/\.json$/i.test(name)){
+							alert(`请选择json文件: ${id.substring(0, id.length - 6)}`)
+							return;
+						}
+						
+						let jsonToConfig = this.jsonToConfig;
+						let cardPoolToConfig = this.cardPoolToConfig;
+						let vueApp = this;
+						console.log(`读取: `+name+" 大小："+size);
+						var reader = new FileReader();//这里是核心！！！读取操作就是由它完成的。
+						reader.readAsText(selectedFile);//读取文件的内容
+						reader.onload = function(){
+							//console.log("读取结果：", this.result);//当读取完成之后会回调这个函数，然后此时文件的内容存储到了result中。直接操作即可。
+							if (outputId == 'Config.json'){
+								vueApp.Config_Text = this.result;
+								jsonToConfig();
+							}else if (outputId == 'CardPool.json'){
+								vueApp.CardPool_Text = this.result;
+								cardPoolToConfig();
+							}else if (outputId == 'SNBTdata.json'){
+								vueApp.SNBTdata_Text = this.result;
+							}
+							document.getElementById(id).value = ''
+						};
+					},
+
+					saveAs(id, filename) {
+						try{JSON.parse(this.Config_Text);}catch(e){return alert('JSON格式错误(Config.json)\n'+e);}
+						try{JSON.parse(this.CardPool_Text);}catch(e){return alert('JSON格式错误(CardPool.json)\n'+e);}
+						try{JSON.parse(this.SNBTdata_Text);}catch(e){return alert('JSON格式错误(SNBTdata.json)\n'+e);}
+						//chrome,火狐等现代浏览器下载文本框内容 
+						let obj = document.getElementById(id);
+						var a = document.createElement('a');
+						a.setAttribute('href', 'data:text/html;gb2312,' + obj.value);
+						a.setAttribute('download', filename);
+						a.setAttribute('target', '_blank');
+						a.style.display = "none";
+						obj.parentNode.appendChild(a);
+						a.click();
+					},
+
+					jsonToConfig(){
+						try{
+							this.Config = JSON.parse(this.Config_Text);
+							if (String(LuckPrayVersion) != String(this.Config.ver)){
+								alert(`提示: 此版本编辑器可能与您的卡池配置文件不兼容\n编辑器适配的LuckPray插件版本:${LuckPrayVersion}\n您的卡池配置文件版本:${this.Config.ver}`)
+							}
+							return true;
+						}catch(e){
+							alert('Config.json_JSON格式错误,无法载入配置\n'+e);
+							return false;
+						}
+					},
+					cardPoolToConfig(){
+						try{
+							this.CardPool = JSON.parse(this.CardPool_Text);
+							return true;
+						}catch(e){
+							alert('CardPool.json_JSON格式错误,无法载入配置\n'+e);
+							return false;
+						}
+					},
+					snbtToConfig(){
+						try{
+							this.SNBTdata = JSON.parse(this.SNBTdata_Text);
+							return true;
+						}catch(e){
+							alert('SNBTdata.json_JSON格式错误,无法载入配置\n'+e);
+							return false;
+						}
+					},
+					
+					allToDefault(){
+						if(confirm(`确定载入默认配置? 未保存内容都会丢失\n(不会更改本地文件)`)){
+							this.Config = Config_default;
+							this.Config_Text = JSON.stringify(Config_default, null, 4);
+							this.CardPool = CardPool_default;
+							this.CardPool_Text = JSON.stringify(CardPool_default, null, 4);
+							this.SNBTdata = SNBTdata_default;
+							this.SNBTdata_Text = JSON.stringify(SNBTdata_default, null, 4);
+							['Config', 'CardPool', 'SNBTdata'].forEach(id=>{
+								let dom = document.getElementById(`saveRes_${id}.json`)
+								dom.innerHTML = `<span style = "color:blue;">已载入/public/${id}_default.json</span>`
+							})
+						}else{
+							return;
+						}
+					},
+					
+					initTab(){
+						// 自动选择标签页
+						this.Temp.test_poolkey = Object.keys(this.CardPool)[0];
+						let pool = this.CardPool;
+						let poolkey = Object.keys(pool)[0];
+						if (poolkey == null){return;}
+						let level = Object.keys(pool[poolkey].rewards)[0];
+						this.poolTab(null, `poolkey0`, document.getElementById('poolTabButton0'), )
+						setTimeout(()=>{
+							this.openTab(null, `rewardlevel${poolkey}${level}`, document.getElementById('rewardTabButton'+poolkey+level));
+						},20)
+					},
+
+					saveToBDS(){
+						if (RunHttp == false || document.location.protocol == 'file:'){
+							let doms= document.getElementsByClassName('ajaxRes');
+							for (let i = 0; i<doms.length; i++){
+								doms[i].style.color = 'red';
+								doms[i].innerHTML = '保存更改不可用, 请打开本地Http服务器(祈愿编辑器.bat), 以对本地json实时修改'
+							}
+							return;
+						}
+						let jsonRes = this.jsonToConfig();
+						jsonRes = jsonRes && this.cardPoolToConfig();
+						jsonRes = jsonRes && this.snbtToConfig();
+						if (jsonRes == false){
+							return alert('json格式错误, 无法保存更改');
+						}
+						let str = `确认保存并覆盖配置文件 ?`;
+						str += `\n保存更改到: ./plugins/LuckPray/Config.json`;
+						str += `\n保存更改到: ./plugins/LuckPray/CardPool.json`;
+						str += `\n保存更改到: ./plugins/LuckPray/SNBTdata.json`;
+						if(confirm(str)){
+							['Config', 'CardPool', 'SNBTdata'].forEach(id=>{
+								console.log(`传送数据: ${id}`)
+								$.post(`/LuckyPray/`, JSON.stringify({
+										purpose: id,
+										data: this[id],
+									}), 
+									(data,status,xhr)=>{
+										console.log(`请求结果: ${status}`);
+										console.log(`返回数据: ${data}`);
+										if (status == 'success'){
+											document.getElementById(`saveRes_${id}.json`).innerHTML = data;
+										}else{
+											document.getElementById(`saveRes_${id}.json`).innerHTML = `<span style="color:red;">保存${id}.json失败 ${status} (${nowDateStr()})<span>`
+										}
+									},
+									'text'
+								);
+							});
+						}else{
+							return;
+						}
+					},
+					
+					allAjaxReload(mode){
+						if (RunHttp == false || document.location.protocol == 'file:'){
+							let doms= document.getElementsByClassName('ajaxRes');
+							for (let i = 0; i<doms.length; i++){
+								doms[i].style.color = 'red';
+								doms[i].innerHTML = '文件载入不可用, 请打开本地Http服务器(祈愿编辑器.bat), 以对本地json实时修改'
+							}
+							this.jsonToConfig();
+							this.cardPoolToConfig();
+							this.snbtToConfig();
+							return;
+						}
+
+						if (mode=='confirm'){
+							let str = '确定重新从文件读取插件配置? 未保存内容都会丢失';
+							str += '\n读取: ./plugins/LuckyPray/Config.json';
+							str += '\n读取: ./plugins/LuckyPray/CardPool.json';
+							str += '\n读取: ./plugins/LuckyPray/SNBTdata.json';
+							str += '\n(不会更改本地文件)';
+							if(!confirm(str)){
+								return;
+							}
+						}
+						
+						['Config', 'CardPool', 'SNBTdata'].forEach(id=>{
+							$.getJSON(`/LuckyPray/`, {
+								getJson: id
+							},(dataJson)=>{
+								this[id] = dataJson;
+								let dom = document.getElementById(`saveRes_${id}.json`);
+								dom.innerHTML = `<span style = "color:deepskyblue;">已载入./plugins/LuckyPray/${id}.json</span>`
+								if (mode != 'confirm' && id == 'CardPool'){
+									this.initTab(); // 是否需要等待vue异步更新
+								}
+							})
+						});
+					}
+				}
+			});
+
+			function functionTab(id){
+				let selevtDiv = document.getElementById(id);
+				if (id == 'PrayConfig'){
+					document.getElementById('PrayImitate').style.display = 'none';
+					selevtDiv.style.display = 'flex';
+				}else{
+					document.getElementById('PrayConfig').style.display = 'none';
+					selevtDiv.style.display = 'flex';
+				}
+			}
+			function nowDateStr(){
+				let date = new Date();
+				return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
+			}
+			
+
+		</script>
+
+		 <script>
+			// var inputElement = document.getElementById("files");
+			// inputElement.addEventListener("change", handleFiles, false);
+
+			
+		</script>
+	</body>
+</html>

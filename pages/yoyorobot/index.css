@@ -1,0 +1,92 @@
+.counter {
+	min-width:1200px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin:0 auto;
+	margin-bottom:100px;
+}
+
+.head {
+	width: 60%;
+	background-color: Beige;
+	font-size: 10rem;
+	text-align: center;
+	border-radius: 10px;
+}
+.subtitle {
+	width: 80%;
+	background-color: Azure;
+	font-family: Microsoft YaHei;
+	font-size: 4rem;
+	text-align: center;
+	color: DarkSalmon;
+	border-radius: 7px;
+}
+.navigationBar{
+    	list-style-type: none;
+    	margin: 0;
+    	padding: 0;
+    	overflow: hidden;
+    	border: 1px solid #e7e7e7;
+    	background-color: #f3f3f3;
+	font-size:18px;
+}
+.navigation {
+    	float: left;
+}
+
+li a {
+    	display: block;
+    	color: #666;
+    	text-align: center;
+    	padding: 14px 16px;
+    	text-decoration: none;
+}
+li a:hover:not(.active) {
+    background-color: #4CAF50;
+}
+
+li a.active {
+    color: white;
+    background-color: #4CAF50;
+}
+.optionTitle {
+	font-weight: bold;
+	font-size:16px;
+	color: red;
+}
+.body {
+	width:1200px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	font-size:14px;
+}
+
+.expa {
+	width: 100%;
+	height: 1px;
+	background-color: Wheat;
+	margin: 8px 0 8px;
+}
+table {
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+td{
+	word-break: break-all; 
+	word-wrap:break-word;
+	padding: 2px;
+}
+
+textarea {
+  width: 100%;
+  height: 400px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 14px;
+}
