@@ -1,0 +1,1 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[6],{278:function(t,e,r){"use strict";r.r(e);var n={data:()=>({})},o=r(14),a=Object(o.a)(n,(function(){return(0,this._self._c)("iframe",{attrs:{src:"/otherhtml/yoyorobot/index.html",width:"100%",height:"100%",frameborder:"0"}})}),[],!1,null,null,null);e.default=a.exports}}]);

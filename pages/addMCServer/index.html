@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="referrer" content="never">
+  <meta data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal">
+  <title>FlySteve文档站</title>
+  <style>
+    button{
+    display: inline-block;
+    padding: 15px 25px;
+    font-size: 24px;
+    cursor: pointer;
+    text-align: center;   
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #999;
+  }
+  button:hover {background-color: #3e8e41}
+
+  button:active {
+    background-color: #3e8e41;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }
+  
+  body {
+    background-image: url('./img.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+  }
+
+  .center {
+    width:300px;
+    height:200px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    margin: auto;
+  }
+
+
+  </style>
+</head>
+<body>
+    <script type="text/javascript">
+    function jump(){
+      location.href="minecraft://?addExternalServer=§b会飞的史蒂夫|flysteve.xyz:17201";
+      //window.open("minecraft://?addExternalServer=§b会飞的史蒂夫|flysteve.xyz:17201");
+      // setTimeout(()=>{
+      //   window.open("about:blank","_self");
+      //   window.opener = null;
+      //   window.close();
+      // },7000);
+    }
+    function showImg(url) {
+      var frameid = 'frameimg' + Math.random();
+      window.img = '<img id="img" src=\'' + url + '?' + Math.random() + '\' /><script>window.onload = function() { parent.document.getElementById(\'' + frameid + '\').height = document.getElementById(\'img\').height+\'px\'; }<' + '/script>';
+      document.write('<iframe id="' + frameid + '" src="javascript:parent.img;" frameBorder="0" scrolling="no" width="100%"></iframe>');
+    }
+    //jump();
+    </script>
+    <div class = "center">
+      <div style = "text-align:center">
+        <button  style = "background-color: #87CEEB;" onclick="jump()">添加FlySteve服务器</button>
+      <div>
+      <br>
+      <div style = "text-align:center">
+      <button onclick="javascrtpt:window.location.href='http://doc.flysteve.xyz'">访问文档站</button> 
+      <div>
+    </div>
+</body>
+</html>
